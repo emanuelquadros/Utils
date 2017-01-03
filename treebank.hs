@@ -27,12 +27,11 @@ parseFile f = do
   text <- readFile f
   return $ parseText (strip text)
 
--- Search function
---search :: Label -> Tree String -> [TreePos Full a]
---search l tr = go . fromTree where
---    go loc = filter (eqLabel l . tree) children
---             (foldl1 (++) loc:(map go (childrenAsList loc)))
+-- 
+search :: Label -> Tree String -> [TreePos Full String]
+search l tr = filter (eqLabel l . tree) $ descendants (fromTree tr)
 
+-- helper for the search function
 eqLabel :: Label -> Tree String -> Bool
 eqLabel l tr = rootLabel tr == l
 
