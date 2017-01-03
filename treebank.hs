@@ -1,15 +1,10 @@
+module NLP.Treebank3 (parseFile, queryLabel) where
+
 import NLP.PennTreebank
---import Control.Lens
 import Data.Tree
-import Data.List
---import Data.Tree.Lens hiding (children)
 import Data.Tree.Zipper
 import Data.String.Utils
 import Text.ParserCombinators.Parsec hiding (label)
-import Text.Parsec.String
-import System.Environment
-import Data.List
-
 
 type Label = String
 
@@ -27,9 +22,9 @@ parseFile f = do
   text <- readFile f
   return $ parseText (strip text)
 
--- 
-search :: Label -> Tree String -> [TreePos Full String]
-search l tr = filter (eqLabel l . tree) $ descendants (fromTree tr)
+-- search function to get all positions of subtrees with a certain label
+queryLabel :: Label -> Tree String -> [TreePos Full String]
+queryLabel l tr = filter (eqLabel l . tree) $ descendants (fromTree tr)
 
 -- helper for the search function
 eqLabel :: Label -> Tree String -> Bool
@@ -43,9 +38,3 @@ descendants pos
     | otherwise = []
     where
       kids = map fromTree (forest (children pos))
-
-
-main = do
-  input <- getArgs
-  wsj <- (readFile (head input))
-  putStrLn "DEBUG: parsed:"
