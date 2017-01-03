@@ -29,12 +29,16 @@ queryLabel l tr = filter (eqLabel l . tree) $ descendants (fromTree tr)
 -- helper for the search function
 eqLabel :: Label -> Tree String -> Bool
 eqLabel l tr = rootLabel tr == l
+               
+treeToString :: Tree String -> String
+treeToString tr = undefined
+
+terminals :: Tree String -> [Tree String]
+terminals tr = map tree $ filter isLeaf $ descendants (fromTree tr)
 
 -- get all descendants of a certain position in the tree, where `descendant-of'
 -- is taken to be a reflexive relation.
 descendants :: TreePos Full a -> [TreePos Full a]
-descendants pos
-    | hasChildren pos = pos:foldl1 (++) (map descendants kids)
-    | otherwise = []
+descendants pos = pos:foldl1 (++) (map descendants kids)
     where
       kids = map fromTree (forest (children pos))
