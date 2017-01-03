@@ -22,23 +22,25 @@ parseFile f = do
   text <- readFile f
   return $ parseText (strip text)
 
--- search function to get all positions of subtrees with a certain label
-queryLabel :: Label -> Tree String -> [TreePos Full String]
-queryLabel l tr = filter (eqLabel l . tree) $ descendants (fromTree tr)
+-- search function to get all subtrees with a certain label
+queryLabel :: Label -> Tree String -> [Tree  String]
+queryLabel l tr = filter (eqLabel l) $ subTrees tr
 
 -- helper for the search function
 eqLabel :: Label -> Tree String -> Bool
 eqLabel l tr = rootLabel tr == l
                
 treeToString :: Tree String -> String
-treeToString tr = undefined
+treeToString = unwords . concat . (map flatten) . terminals
 
 terminals :: Tree String -> [Tree String]
-terminals tr = map tree $ filter isLeaf $ descendants (fromTree tr)
+terminals tr = map tree $ filter isLeaf $ map fromTree (subTrees tr)
 
--- get all descendants of a certain position in the tree, where `descendant-of'
+-- get all subtrees of a tree, where `subtree-of'
 -- is taken to be a reflexive relation.
-descendants :: TreePos Full a -> [TreePos Full a]
-descendants pos = pos:foldl1 (++) (map descendants kids)
+subTrees :: Eq a => Tree a -> [Tree a]
+subTrees t
+    | [] == (subForest t) = [t]
+    | otherwise = t:foldl1 (++) (map subTrees kids)
     where
-      kids = map fromTree (forest (children pos))
+      kids = subForest t
