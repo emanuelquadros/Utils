@@ -1,4 +1,4 @@
-module NLP.Treebank3 (parseFile, queryLabel) where
+module Treebank3 (parseFile, queryLabel) where
 
 import NLP.PennTreebank
 import Data.Tree
