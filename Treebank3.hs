@@ -1,29 +1,41 @@
-module Treebank3 (parseFile, queryLabel) where
+module Treebank3 (parseFile, searchLabel) where
 
 import NLP.PennTreebank
+import Utils.Dir
 import Data.Tree
 import Data.Tree.Zipper
 import Data.String.Utils
 import Text.ParserCombinators.Parsec hiding (label)
+import System.IO
+import Control.DeepSeq
 
 type Label = String
 
 -- Wrapper around the parser, calling it as many times as possible on
 -- a string, and returning a list.
-parseText :: String -> [Tree String]
-parseText text = case parse (many parseTree) "wsj" (strip text) of
-                   Left err -> error $ "Input:\n" ++ show text ++
-                               "\nError:\n" ++ show err
-                   Right result -> result
+parseText :: String -> String -> [Tree String]
+parseText path text = case parse (many parseTree) "wsj" (strip text) of
+                        Left err -> error $ "Input:\n" ++ show path ++
+                                    "\nError:\n" ++ show err
+                        Right result -> result
 
 -- Send the content of a file to parseText
 parseFile :: FilePath -> IO [Tree String]
-parseFile f = do
-  text <- readFile f
-  return $ parseText (strip text)
+parseFile f = withFile f ReadMode $ \handle -> do
+                text <- hGetContents handle
+                return $!! parseText f (strip text)
 
+-- traverses the whole database, searching for subtrees with a certain label
+searchLabel :: [Tree String] -> Label -> [Tree String]
+searchLabel trees l = concat (map (queryLabel l) trees)
+
+buildForest :: FilePath -> IO [Tree String]
+buildForest basedir = do
+  trees <- mapM parseFile =<< getFiles basedir
+  return (concat trees)
+  
 -- search function to get all subtrees with a certain label
-queryLabel :: Label -> Tree String -> [Tree  String]
+queryLabel :: Label -> Tree String -> [Tree String]
 queryLabel l tr = filter (eqLabel l) $ subTrees tr
 
 -- helper for the search function
