@@ -5,6 +5,12 @@ import Text.ParserCombinators.Parsec
 import Text.Parsec.Language (emptyDef)
 import qualified Text.ParserCombinators.Parsec.Token as Token
 
+
+--- This a sample Nombank entry:
+---
+---    wsj/17/wsj_1734.mrg 3 49 equity 01 44:2-ARG2 49:0-rel
+---
+--- where each field is separated by a whitespace.
 data Nom = Nom { file :: String
                , tree :: Int
                , token :: Int
@@ -16,6 +22,7 @@ data Nom = Nom { file :: String
 data Piece = Piece { pointers :: String
                    , label :: String
                    } deriving (Show)
+-------------------------------------------------
 
 --- lexer, just to make the code more compact
 lexer = Token.makeTokenParser emptyDef
@@ -35,9 +42,9 @@ pieces = do
   char '-'
   label <- lexeme parseString
   return (Piece pointers label)
-           
-prop :: Parser Nom
-prop = do
+
+nomprop :: Parser Nom
+nomprop = do
   file <- lexeme parseString
   tree <- read <$> lexeme (many1 digit)
   token <- read <$> lexeme (many1 digit)
