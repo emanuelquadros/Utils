@@ -1,4 +1,4 @@
-module TreeBank3.Utils (getFiles) where
+module Utils.Dir (getFiles) where
 
 import Control.Monad (forM)
 import System.Directory (doesDirectoryExist, getDirectoryContents)
