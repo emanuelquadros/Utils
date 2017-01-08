@@ -16,39 +16,67 @@ data Nom = Nom { file :: String
                , token :: Int
                , lemma :: String
                , sense :: Int
-               , labels :: [Piece]
+               , pieces :: [Piece]
                } deriving (Show)
 
-data Piece = Piece { pointers :: String
+data Piece = Piece { pointers :: Pointers
                    , label :: String
                    } deriving (Show)
+
+data Pointers = Pointer { ptoken :: Int
+                       , level :: Int
+                       }
+              | ConcatPointer [Pointers]
+              | PointerChain [Pointers] deriving (Show)
 -------------------------------------------------
 
 --- lexer, just to make the code more compact
 lexer = Token.makeTokenParser emptyDef
 
 lexeme = Token.lexeme lexer
-decimal = Token.decimal lexer
 ----------------------------------------------
+
+parseNom :: Parser Nom
+parseNom = do
+  file <- lexeme parseString
+  tree <- read <$> lexeme (many1 digit)
+  token <- read <$> lexeme (many1 digit)
+  lemma <- lexeme parseString
+  sense <- read <$> lexeme (many1 digit)
+  labels <- many parsePieces
+  return (Nom file tree token lemma sense labels)
 
 parseString :: Parser String
 parseString = do
   s <- many1 $ noneOf " \n"
   return s
 
-pieces :: Parser Piece
-pieces = do
-  pointers <- many1 (digit <|> oneOf ":,*")
-  char '-'
+parsePieces :: Parser Piece
+parsePieces = do
+  ps <- parsePointers
   label <- lexeme parseString
-  return (Piece pointers label)
+  return (Piece ps label)
 
-nomprop :: Parser Nom
-nomprop = do
-  file <- lexeme parseString
-  tree <- read <$> lexeme (many1 digit)
-  token <- read <$> lexeme (many1 digit)
-  lemma <- lexeme parseString
-  sense <- read <$> lexeme (many1 digit)
-  labels <- many pieces
-  return (Nom file tree token lemma sense labels)
+pointer :: Parser Pointers
+pointer = do
+  ptoken <- read <$> many1 digit
+  char ':'
+  level <- read <$> many1 digit
+  return (Pointer ptoken level)
+
+parsePointers :: Parser Pointers
+parsePointers = do
+  p <- try (pointer <* (char '-'))
+          <|> try parseConcat
+          <|> parseChain
+  return p
+
+parseConcat :: Parser Pointers
+parseConcat = do
+  ps <- many1 (pointer <* (try (char ',') <|> char '-'))
+  return (ConcatPointer ps)
+  
+parseChain :: Parser Pointers
+parseChain = do
+  ps <- many1 (pointer <* (try (char '*') <|> char '-'))
+  return (PointerChain ps)
