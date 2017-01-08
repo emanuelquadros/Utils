@@ -1,7 +1,7 @@
-module Nombank where
+module Nombank (parseNom) where
 
-import Text.Parsec
-import Text.ParserCombinators.Parsec
+import Text.Parsec (many, many1, skipMany1, digit, char, noneOf)
+import Text.ParserCombinators.Parsec.Prim (Parser, (<|>), try)
 import Text.Parsec.Language (emptyDef)
 import qualified Text.ParserCombinators.Parsec.Token as Token
 
