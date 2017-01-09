@@ -1,4 +1,4 @@
-module Utils.Dir (getFiles) where
+module Utils.Dir (getFiles, lastN) where
 
 import Control.Monad (forM)
 import System.Directory (doesDirectoryExist, getDirectoryContents)
